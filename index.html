@@ -435,8 +435,10 @@ function loadFromURL() {
 
 function toURL() {
   const entries = Object.entries(selections);
-  if (!entries.length) return location.pathname;
-  return location.pathname + '?s=' + entries.map(([s, id]) => s + ':' + id).join(',');
+  const params = [];
+  if (entries.length) params.push('s=' + entries.map(([s, id]) => s + ':' + id).join(','));
+  if (locked) params.push('lock=1');
+  return location.pathname + (params.length ? '?' + params.join('&') : '');
 }
 
 let selections = loadFromURL() || JSON.parse(localStorage.getItem('geecon-selections') || '{}');
@@ -478,12 +480,18 @@ function clearAll() {
   applyState();
 }
 
-let locked = false;
+let locked = new URLSearchParams(location.search).get('lock') === '1';
 
 function toggleLock() {
   locked = !locked;
   document.querySelector('.schedule').classList.toggle('locked', locked);
   document.getElementById('lock-btn').textContent = locked ? 'Unlock' : 'Lock';
+  history.replaceState(null, '', toURL());
+}
+
+if (locked) {
+  document.querySelector('.schedule').classList.add('locked');
+  document.getElementById('lock-btn').textContent = 'Unlock';
 }
 
 function toggleTheme() {
