@@ -20,3 +20,5 @@ I've already filled in my plan - https://kshyshtoph.github.io/geecon-2026-planne
 Pretty much same thing - fill it in, share on socials, have your plan on mobile, don't get lost - there's not too much to it. Just have fun
 
 ### See you there!
+
+<img width="1898" height="831" alt="image" src="https://github.com/user-attachments/assets/c5bb2240-6241-4d2c-a590-0c809b89112c" />
