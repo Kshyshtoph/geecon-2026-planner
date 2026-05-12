@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeeCon 2026 Planner</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0f1117;
+    --text: #e1e4e8;
+    --text-bright: #f0f6fc;
+    --surface: #161b22;
+    --surface-hover: #1c2128;
+    --border: #30363d;
+    --muted: #8b949e;
+    --faint: #484f58;
+    --accent: #58a6ff;
+    --selected-border: #3fb950;
+    --selected-bg: #122117;
+    --error: #f85149;
+    --cat-ai-bg: #1a472a; --cat-ai-fg: #3fb950;
+    --cat-arch-bg: #0d2d6b; --cat-arch-fg: #58a6ff;
+    --cat-sec-bg: #5b1d1d; --cat-sec-fg: #f85149;
+    --cat-test-bg: #3b1f5b; --cat-test-fg: #bc8cff;
+    --cat-devops-bg: #4a2e0a; --cat-devops-fg: #d29922;
+    --cat-perf-bg: #4a1e0a; --cat-perf-fg: #db6d28;
+    --cat-team-bg: #0a3d4a; --cat-team-fg: #39d2c0;
+    --cat-news-bg: #4a3e0a; --cat-news-fg: #e3b341;
+    --cat-panel-bg: #2a2a2a; --cat-panel-fg: #b0b0b0;
+    --cat-other-bg: #2a2a3a; --cat-other-fg: #a0a0c0;
+  }
+
+  :root.light {
+    --bg: #f6f8fa;
+    --text: #1f2328;
+    --text-bright: #000;
+    --surface: #ffffff;
+    --surface-hover: #f0f0f0;
+    --border: #d0d7de;
+    --muted: #656d76;
+    --faint: #8b949e;
+    --accent: #0969da;
+    --selected-border: #1a7f37;
+    --selected-bg: #dafbe1;
+    --error: #cf222e;
+    --cat-ai-bg: #dafbe1; --cat-ai-fg: #116329;
+    --cat-arch-bg: #ddf4ff; --cat-arch-fg: #0550ae;
+    --cat-sec-bg: #ffebe9; --cat-sec-fg: #a40e26;
+    --cat-test-bg: #f0e8ff; --cat-test-fg: #6639ba;
+    --cat-devops-bg: #fff8c5; --cat-devops-fg: #7a4f01;
+    --cat-perf-bg: #fff1e5; --cat-perf-fg: #953800;
+    --cat-team-bg: #d2f7f0; --cat-team-fg: #0a6c5c;
+    --cat-news-bg: #fff8c5; --cat-news-fg: #7a4f01;
+    --cat-panel-bg: #eee; --cat-panel-fg: #555;
+    --cat-other-bg: #eef; --cat-other-fg: #556;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-bright);
+  }
+
+  header h1 span { color: var(--accent); }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-hover);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.15s;
+  }
+
+  .btn:hover { background: var(--border); }
+
+  .btn-clear { border-color: var(--error); color: var(--error); }
+  .btn-clear:hover { background: color-mix(in srgb, var(--error) 15%, transparent); }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+
+  .tab {
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .schedule { padding: 16px 24px 40px; max-width: 1400px; margin: 0 auto; }
+
+  .day { display: none; }
+  .day.active { display: block; }
+
+  .timeslot-row {
+    margin-bottom: 2px;
+    display: flex;
+    gap: 2px;
+    min-height: 60px;
+  }
+
+  .time-label {
+    width: 70px;
+    min-width: 70px;
+    padding: 10px 8px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.4;
+  }
+
+  .time-label .end { color: var(--faint); }
+
+  .slots-container {
+    flex: 1;
+    display: flex;
+    gap: 2px;
+  }
+
+  .service-slot {
+    flex: 1;
+    background: var(--surface);
+    border-radius: 6px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  .talk {
+    flex: 1;
+    background: var(--surface);
+    border-radius: 6px;
+    padding: 12px 14px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+  }
+
+  .talk:hover { background: var(--surface-hover); }
+
+  .talk .title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .talk .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-top: auto;
+  }
+
+  .talk .speaker {
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .talk .category {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .talk .room-tag {
+    font-size: 0.6rem;
+    color: var(--faint);
+    margin-left: auto;
+  }
+
+  .talk .room-mobile {
+    display: none;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .cat-ai { background: var(--cat-ai-bg); color: var(--cat-ai-fg); }
+  .cat-architecture { background: var(--cat-arch-bg); color: var(--cat-arch-fg); }
+  .cat-security { background: var(--cat-sec-bg); color: var(--cat-sec-fg); }
+  .cat-testing { background: var(--cat-test-bg); color: var(--cat-test-fg); }
+  .cat-devops { background: var(--cat-devops-bg); color: var(--cat-devops-fg); }
+  .cat-performance { background: var(--cat-perf-bg); color: var(--cat-perf-fg); }
+  .cat-teamculture { background: var(--cat-team-bg); color: var(--cat-team-fg); }
+  .cat-news { background: var(--cat-news-bg); color: var(--cat-news-fg); }
+  .cat-panel { background: var(--cat-panel-bg); color: var(--cat-panel-fg); }
+  .cat-other { background: var(--cat-other-bg); color: var(--cat-other-fg); }
+
+  .talk.selected {
+    border-left-color: var(--selected-border);
+    background: var(--selected-bg);
+  }
+
+  .talk.selected .title { color: var(--text-bright); }
+
+  .talk.greyed {
+    opacity: 0.25;
+  }
+
+  .locked .talk {
+    pointer-events: none;
+  }
+
+  .stacked-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .counter {
+    font-size: 0.8rem;
+    color: #8b949e;
+    padding: 8px 0;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  .counter strong { color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .timeslot-row { flex-direction: column; }
+    .time-label {
+      width: 100%;
+      flex-direction: row;
+      gap: 8px;
+      text-align: left;
+      padding: 8px 4px 2px;
+    }
+    .slots-container { flex-direction: column; }
+    .talk .room-mobile { display: block; }
+    .talk .room-tag { display: none; }
+    header { padding: 12px 16px; }
+    .schedule { padding: 12px 16px 40px; }
+    .tabs { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>GeeCon</span> 2026 Planner</h1>
+  <div class="header-actions">
+    <button class="btn" onclick="toggleLock()" id="lock-btn">Lock</button>
+    <button class="btn" onclick="toggleTheme()" id="theme-btn">Light</button>
+    <button class="btn" onclick="copyLink()">Copy Link</button>
+    <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchDay(1)">Day 1 — May 14</div>
+  <div class="tab" onclick="switchDay(2)">Day 2 — May 15</div>
+</div>
+
+<div class="schedule">
+  <div id="day1" class="day active"></div>
+  <div id="day2" class="day"></div>
+  <div class="counter" id="counter"></div>
+</div>
+
+<script>
+const schedule = [
+  // ===== DAY 1 =====
+  { day: 1, time: "09:00", end: "09:45", service: "Registration & breakfast" },
+  { day: 1, time: "09:45", end: "10:00", service: "Opening ceremony" },
+  { day: 1, time: "10:00", end: "10:50", slot: "d1-1000", talks: [
+    { id: "1100", title: "How To Be a Rockstar Developer", speakers: ["Dylan Beattie"], cat: "NEWS", room: "Room 1", wide: true }
+  ]},
+  { day: 1, time: "10:50", end: "11:10", service: "Coffee Break" },
+  { day: 1, time: "11:10", end: "12:00", slot: "d1-1110", talks: [
+    { id: "1079", title: "An Opinionated Guide to Bulletproof APIs with Java", speakers: ["Rustam Mehmandarov"], cat: "ARCHITECTURE", room: "Room 1" },
+    { id: "1088", title: "Of Microservices and Monoliths, and Everything in Between", speakers: ["Spencer Gibb"], cat: "ARCHITECTURE", room: "Room 12" },
+    { id: "1073", title: "AI vs. Karen: Building Real-Time Sentiment Analysis Pipelines at Scale", speakers: ["Josef Goldstein"], cat: "AI", room: "Room 11" }
+  ]},
+  { day: 1, time: "12:00", end: "12:50", service: "Lunch Break" },
+  { day: 1, time: "12:50", end: "13:40", slot: "d1-1250", talks: [
+    { id: "1091", title: "10 Billion Records vs. The Regulator: An Architectural Post-Mortem", speakers: ["Martin Ladecký"], cat: "ARCHITECTURE", room: "Room 1" },
+    { id: "1087", title: "The 50x Developer: Java's Unfair Advantage in the Age of AI Agents", speakers: ["Adam Bien"], cat: "AI", room: "Room 12" },
+    { id: "1074", title: "Agents With Seatbelts: Practical Ways to Keep AI Code Gen Under Control", speakers: ["Jonathan Vila López"], cat: "AI", room: "Room 11" }
+  ]},
+  { day: 1, time: "13:40", end: "14:00", service: "Coffee Break" },
+  { day: 1, time: "14:00", end: "14:50", slot: "d1-1400", talks: [
+    { id: "1076", title: "Concurrency testing on the JVM", speakers: ["Adam Warski"], cat: "TESTING", room: "Room 1" },
+    { id: "1081", title: "Business won't wait, the platform won't either. How the infra team becomes a partner in delivering business value", speakers: ["Marcin Grzejszczak"], cat: "DEVOPS", room: "Room 12" },
+    { id: "1072", title: "Dehumanizing Agents: Why Explainability is Crucial in the LLM Era", speakers: ["Lucía Conde Moreno"], cat: "AI", room: "Room 11" }
+  ]},
+  { day: 1, time: "14:50", end: "15:10", service: "Coffee Break" },
+  { day: 1, time: "15:10", end: "16:00", slot: "d1-1510", talks: [
+    { id: "1090", title: "Troubleshooting Production with AI: Automating Tribal Knowledge @ Scale", speakers: ["Yasmin Dunsky", "Aviva Peisach"], cat: "AI", room: "Room 1" },
+    { id: "1099", title: "Supply Chain Compromise: The Anatomy of the Attack and the Blueprint for Defense", speakers: ["Niek Palm"], cat: "SECURITY", room: "Room 12" },
+    { id: "1083", title: "Building Self-Correcting AI Agents: Iterative Refinement Patterns with Spring AI", speakers: ["Christian Tzolov"], cat: "AI", room: "Room 11" }
+  ]},
+  { day: 1, time: "16:00", end: "16:20", service: "Coffee Break" },
+  { day: 1, time: "16:20", end: "17:10", slot: "d1-1620", talks: [
+    { id: "1127", title: "Enterprise Java in the Age of AI: Ready, Rethinking, or Reinventing?", speakers: ["Marcin Grzejszczak", "Adam Bien", "Spencer Gibb", "Jakub Nabrdalik", "Arjen Poutsma"], cat: "PANEL", room: "Room 1" },
+    { id: "1116", title: "You're Absolutely Right (and Other Lies My AI Told Me): Engineering Context for Agentic AI", speakers: ["Baruch Sadogursky"], cat: "AI", room: "Room 12" },
+    { id: "1080", title: "Scotty, I need Warp Speed — Ways to improve the JVM startup/warmup", speakers: ["Gerrit Grunwald"], cat: "PERFORMANCE", room: "Room 11" }
+  ]},
+  { day: 1, time: "17:10", end: "17:20", service: "Break" },
+  { day: 1, time: "17:20", end: "18:10", slot: "d1-1720", talks: [
+    { id: "1124", title: "Java 27 and Beyond: What Excites You, and Which Myths Need to Die", speakers: ["Marit van Dijk", "Johannes Bechberger", "Mihaela Gheorghe-Roman", "Gerrit Grunwald", "Steve Poole", "Piotr Przybył"], cat: "PANEL", room: "Room 1" },
+    { id: "1085", title: "Teaching an Old Pet Clinic New Tricks: Introducing Agents into Existing Applications", speakers: ["Arjen Poutsma"], cat: "AI", room: "Room 12" },
+    { id: "1097", title: "Thread Pool Queue Wait Time: The Bottleneck even AI couldn't find", speakers: ["Mateusz Nalepa"], cat: "PERFORMANCE", room: "Room 11", stacked: true },
+    { id: "1096", title: "Before the To-Do List: The One Conversation Every Team Needs", speakers: ["Agata Kabat"], cat: "TEAMCULTURE", room: "Room 11", stacked: true }
+  ]},
+
+  // ===== DAY 2 =====
+  { day: 2, time: "08:30", end: "09:00", service: "Breakfast" },
+  { day: 2, time: "09:00", end: "09:50", slot: "d2-0900", talks: [
+    { id: "1082", title: "What is multimodal RAG, and can we build a village with it?", speakers: ["Alexander Chatzizacharias"], cat: "AI", room: "Room 1" },
+    { id: "1093", title: "What's All the Fuss About Quantum Computing?", speakers: ["Artur Kęska"], cat: "NEWS", room: "Room 12" },
+    { id: "1111", title: "Why Bad Code Quality Is Not (Only) Your Fault", speakers: ["Annelore Egger"], cat: "TEAMCULTURE", room: "Room 11" },
+    { id: "1118", title: "Consistency and Coordination Patterns in Event-Driven Architecture", speakers: ["Emanuel Trandafir"], cat: "ARCHITECTURE", room: "Room 6" }
+  ]},
+  { day: 2, time: "09:50", end: "10:10", service: "Coffee Break" },
+  { day: 2, time: "10:10", end: "11:00", slot: "d2-1010", talks: [
+    { id: "1112", title: "Live Coding The Hive: building a microservices-ready modular monolith", speakers: ["Thomas Pierrain", "Julien Topçu"], cat: "ARCHITECTURE", room: "Room 1" },
+    { id: "1106", title: "JDK 25's new CPU-Time Profiler", speakers: ["Johannes Bechberger"], cat: "PERFORMANCE", room: "Room 12" },
+    { id: "1075", title: "The Enemy Within: How AI is Weaponizing Your Code", speakers: ["Steve Poole"], cat: "SECURITY", room: "Room 11" },
+    { id: "1108", title: "4xx: The Curious Case of a Disappearing Manager", speakers: ["Agnieszka Lasyk"], cat: "TEAMCULTURE", room: "Room 6" }
+  ]},
+  { day: 2, time: "11:00", end: "11:20", service: "Coffee Break" },
+  { day: 2, time: "11:20", end: "12:10", slot: "d2-1120", talks: [
+    { id: "1084", title: "Learning modern Java the playful way", speakers: ["Piotr Przybył", "Marit van Dijk"], cat: "NEWS", room: "Room 1" },
+    { id: "1095", title: "Unlocking Java's Code Maze: Live Puzzles for the Curious Developer", speakers: ["Mihaela Gheorghe-Roman"], cat: "NEWS", room: "Room 12" },
+    { id: "1117", title: "The AI-driven future of test environments", speakers: ["Tom Akehurst"], cat: "AI", room: "Room 11" },
+    { id: "1114", title: "Lightning fast services with Server Side Swift", speakers: ["Marcin Kliks"], cat: "PERFORMANCE", room: "Room 6" }
+  ]},
+  { day: 2, time: "12:10", end: "13:00", service: "Lunch Break" },
+  { day: 2, time: "13:00", end: "13:50", slot: "d2-1300", talks: [
+    { id: "1092", title: "The Past, Present, and Future of Enterprise Java", speakers: ["Ivar Grimstad"], cat: "NEWS", room: "Room 1" },
+    { id: "1105", title: "Mob Rules, or: how I learned to Stop Worrying and Love Technical Debt", speakers: ["Tomer Gabel"], cat: "TEAMCULTURE", room: "Room 12" },
+    { id: "1101", title: "Tour of Agent Protocols: MCP, A2A, AG-UI, A2UI", speakers: ["Mete Atamel"], cat: "AI", room: "Room 11" },
+    { id: "1121", title: "Authorization & Dependencies: the two ways apps betray us", speakers: ["Marcin Łapaj"], cat: "OTHER", room: "Room 6" }
+  ]},
+  { day: 2, time: "13:50", end: "14:10", service: "Coffee Break" },
+  { day: 2, time: "14:10", end: "15:00", slot: "d2-1410", talks: [
+    { id: "1113", title: "Pairing with Claude: My Experience Using AI for Test-First Development", speakers: ["Thomas Sundberg"], cat: "AI", room: "Room 1" },
+    { id: "1123", title: "Short-Term & Long-Term Memory in an AI Agent with Spring AI", speakers: ["Dominik Cebula"], cat: "AI", room: "Room 12" },
+    { id: "1089", title: "Modules: design around processes, not data", speakers: ["Jakub Nabrdalik"], cat: "ARCHITECTURE", room: "Room 11" },
+    { id: "1104", title: "Unifying AI integration with Model Context Protocol", speakers: ["Dariusz Jędrzejczyk"], cat: "AI", room: "Room 6" }
+  ]},
+  { day: 2, time: "15:00", end: "15:20", service: "Coffee Break" },
+  { day: 2, time: "15:20", end: "16:10", slot: "d2-1520", talks: [
+    { id: "1077", title: "Gemini Plays Final Fantasy: Teaching LLMs to play jRPG from scratch", speakers: ["Artur Skowronski"], cat: "AI", room: "Room 1" },
+    { id: "1120", title: "AI-Powered Product Data Quality: Automated Scoring at Scale Using LLM Vision", speakers: ["Ahmed Hassanien"], cat: "AI", room: "Room 12" },
+    { id: "1110", title: "GenAI and Java: A One-Year Retrospective", speakers: ["Piotr Łaskawiec"], cat: "AI", room: "Room 11" },
+    { id: "1119", title: "82 Bugs I Collected in a Year You Won't Believe Made It to Production", speakers: ["François Martin"], cat: "TESTING", room: "Room 6" }
+  ]},
+  { day: 2, time: "16:10", end: "16:30", service: "Coffee Break" },
+  { day: 2, time: "16:30", end: "16:50", slot: "d2-1630", talks: [
+    { id: "1103", title: "An ultimate tool for your agents — desktop applications reinvented", speakers: ["Tomas Rehak"], cat: "AI", room: "Room 1" },
+    { id: "1107", title: "Project Liliput — first free lunch", speakers: ["Konrad Szałkowski"], cat: "PERFORMANCE", room: "Room 12" },
+    { id: "1102", title: "Reviewing the Reviewer: Better PR Feedback", speakers: ["Szymon Sadowski"], cat: "TEAMCULTURE", room: "Room 11" },
+    { id: "1125", title: "'It'll Take an Hour': A Half-Year Agent System", speakers: ["Krzysztof Debski"], cat: "AI", room: "Room 6" }
+  ]},
+  { day: 2, time: "16:50", end: "17:00", service: "Break" },
+  { day: 2, time: "17:00", end: "17:10", service: "Closing ceremony" },
+  { day: 2, time: "17:10", end: "18:00", slot: "d2-1710", talks: [
+    { id: "1122", title: "AI-Assisted Coding Beyond the Vibe: Craft, Economics, and the Human at the Controls", speakers: ["Adam Dudczak", "Dylan Beattie", "Artur Skowronski", "Christian Tzolov"], cat: "PANEL", room: "Room 1", wide: true }
+  ]}
+];
+
+function loadFromURL() {
+  const p = new URLSearchParams(location.search).get('s');
+  if (!p) return null;
+  const obj = {};
+  p.split(',').forEach(pair => {
+    const [slot, id] = pair.split(':');
+    if (slot && id) obj[slot] = id;
+  });
+  return obj;
+}
+
+function toURL() {
+  const entries = Object.entries(selections);
+  if (!entries.length) return location.pathname;
+  return location.pathname + '?s=' + entries.map(([s, id]) => s + ':' + id).join(',');
+}
+
+let selections = loadFromURL() || JSON.parse(localStorage.getItem('geecon-selections') || '{}');
+
+function save() {
+  localStorage.setItem('geecon-selections', JSON.stringify(selections));
+  history.replaceState(null, '', toURL());
+  updateCounter();
+}
+
+function toggle(slotId, talkId) {
+  if (selections[slotId] === talkId) {
+    delete selections[slotId];
+  } else {
+    selections[slotId] = talkId;
+  }
+  save();
+  applyState();
+}
+
+function applyState() {
+  document.querySelectorAll('.talk').forEach(el => {
+    const slot = el.dataset.slot;
+    const id = el.dataset.id;
+    el.classList.remove('selected', 'greyed');
+    if (selections[slot]) {
+      if (selections[slot] === id) {
+        el.classList.add('selected');
+      } else {
+        el.classList.add('greyed');
+      }
+    }
+  });
+}
+
+function clearAll() {
+  selections = {};
+  save();
+  applyState();
+}
+
+let locked = false;
+
+function toggleLock() {
+  locked = !locked;
+  document.querySelector('.schedule').classList.toggle('locked', locked);
+  document.getElementById('lock-btn').textContent = locked ? 'Unlock' : 'Lock';
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  localStorage.setItem('geecon-theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isLight ? 'Dark' : 'Light';
+}
+
+if (localStorage.getItem('geecon-theme') === 'light') {
+  document.documentElement.classList.add('light');
+  document.getElementById('theme-btn').textContent = 'Dark';
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(location.origin + toURL()).then(() => {
+    const btn = document.querySelector('.btn:not(.btn-clear)');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Link', 1500);
+  });
+}
+
+function switchDay(n) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === n - 1));
+  document.querySelectorAll('.day').forEach((d, i) => d.classList.toggle('active', i === n - 1));
+}
+
+function updateCounter() {
+  const total = Object.keys(selections).length;
+  document.getElementById('counter').innerHTML = total
+    ? `<strong>${total}</strong> talk${total > 1 ? 's' : ''} selected`
+    : 'No talks selected yet — click to pick';
+}
+
+function catClass(cat) {
+  return 'cat-' + (cat || 'other').toLowerCase().replace(/[^a-z]/g, '');
+}
+
+function renderTalk(talk, slotId) {
+  const div = document.createElement('div');
+  div.className = 'talk';
+  div.dataset.slot = slotId;
+  div.dataset.id = talk.id;
+  div.onclick = () => toggle(slotId, talk.id);
+  div.innerHTML = `
+    <div class="room-mobile">${talk.room}</div>
+    <div class="title">${talk.title}</div>
+    <div class="meta">
+      <span class="category ${catClass(talk.cat)}">${talk.cat || '—'}</span>
+      <span class="speaker">${talk.speakers.join(', ')}</span>
+      <span class="room-tag">${talk.room}</span>
+    </div>
+  `;
+  return div;
+}
+
+function render() {
+  [1, 2].forEach(day => {
+    const container = document.getElementById('day' + day);
+    const items = schedule.filter(s => s.day === day);
+
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'timeslot-row';
+
+      const label = document.createElement('div');
+      label.className = 'time-label';
+      label.innerHTML = `<span>${item.time}</span><span class="end">${item.end}</span>`;
+      row.appendChild(label);
+
+      const slotsDiv = document.createElement('div');
+      slotsDiv.className = 'slots-container';
+
+      if (item.service) {
+        const svc = document.createElement('div');
+        svc.className = 'service-slot';
+        svc.textContent = item.service;
+        slotsDiv.appendChild(svc);
+      } else if (item.talks) {
+        const hasStacked = item.talks.some(t => t.stacked);
+        const normalTalks = item.talks.filter(t => !t.stacked);
+        const stackedTalks = item.talks.filter(t => t.stacked);
+
+        normalTalks.forEach(talk => {
+          slotsDiv.appendChild(renderTalk(talk, item.slot));
+        });
+
+        if (stackedTalks.length) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'stacked-wrapper';
+          stackedTalks.forEach(talk => {
+            wrapper.appendChild(renderTalk(talk, item.slot));
+          });
+          slotsDiv.appendChild(wrapper);
+        }
+      }
+
+      row.appendChild(slotsDiv);
+      container.appendChild(row);
+    });
+  });
+
+  applyState();
+  updateCounter();
+}
+
+render();
+</script>
+</body>
+</html>
