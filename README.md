@@ -9,6 +9,7 @@ There are multiple talks that I'd like to attend, but I can be only at one place
 ## How I built it?
 
 Nothing to brag about here - a single `/plan` with claude code, artisnal copy-pastement of the schedules as HTML from the official page, a bunch of tweaks on theme toggle, locking state, shareable URL, so I can plan on desktop and view on mobile - I could do it by hand in half a day or vibe it out in half an hour. The choice was simple
+The result is a single file containing HTML, CSS and JS - the holy trinity of frontend development. Seems enough for what I need it to do.
 
 ## What am I going to do with it?
 
